@@ -1,0 +1,11 @@
+# Worker deployment of the same artifact. Serves no traffic; consumes the reconcile queue.
+# This is the substitution for a managed function - see README "Design decisions & trade-offs".
+server:
+  port: ${SERVER_PORT:8081}
+
+verifyflow:
+  role: worker
+
+logging:
+  level:
+    dev.portfolio.verifyflow.reconcile: DEBUG
