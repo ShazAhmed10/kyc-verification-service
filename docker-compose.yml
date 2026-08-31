@@ -1,0 +1,85 @@
+# One command to run everything: docker compose up --build
+#
+# Five containers: Postgres, RabbitMQ, the API, the reconciliation worker, and the simulated vendor.
+# The API and the worker are the SAME image with different Spring profiles - see the README's
+# "Design decisions & trade-offs" for why the worker is a queue consumer rather than a real
+# managed function.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: verifyflow
+      POSTGRES_USER: verifyflow
+      POSTGRES_PASSWORD: verifyflow
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U verifyflow -d verifyflow"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports: ["5672:5672", "15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  vendor-sim:
+    build:
+      context: .
+      args:
+        MODULE: vendor-simulator
+    environment:
+      SERVER_PORT: 9090
+      CALLBACK_URL: http://api:8080/webhooks/verifypro
+      WEBHOOK_SHARED_SECRET: local-dev-secret
+      CALLBACK_DELAY_MS: 1500
+    ports: ["9090:9090"]
+
+  api:
+    build:
+      context: .
+      args:
+        MODULE: verification-service
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      SERVER_PORT: 8080
+      DB_URL: jdbc:postgresql://postgres:5432/verifyflow
+      DB_USER: verifyflow
+      DB_PASSWORD: verifyflow
+      RABBIT_HOST: rabbitmq
+      VENDOR_BASE_URL: http://vendor-sim:9090
+      WEBHOOK_SHARED_SECRET: local-dev-secret
+      EXPIRY_TTL: PT2M
+      EXPIRY_SWEEP_MS: 20000
+      READMODEL_MAX_AGE: PT15S
+      # Read from your shell / .env - never baked into the image.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports: ["8080:8080"]
+
+  worker:
+    build:
+      context: .
+      args:
+        MODULE: verification-service
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    environment:
+      SPRING_PROFILES_ACTIVE: worker
+      SERVER_PORT: 8081
+      DB_URL: jdbc:postgresql://postgres:5432/verifyflow
+      DB_USER: verifyflow
+      DB_PASSWORD: verifyflow
+      RABBIT_HOST: rabbitmq
+      VENDOR_BASE_URL: http://vendor-sim:9090
+      WEBHOOK_SHARED_SECRET: local-dev-secret
+      # Flyway runs in the API container; the worker validates against the schema it finds.
+      SPRING_FLYWAY_ENABLED: "false"
+    ports: ["8081:8081"]
