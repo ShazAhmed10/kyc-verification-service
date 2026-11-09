@@ -1,12 +1,14 @@
 # verification-flow-prototype
 
+[![CI](https://github.com/ShazAhmed10/verification-flow-prototype/actions/workflows/ci.yml/badge.svg)](https://github.com/ShazAhmed10/verification-flow-prototype/actions/workflows/ci.yml)
+
 A small backend service demonstrating three patterns that show up whenever you integrate an
 asynchronous third-party vendor: **async vendor integration with webhook + worker reconciliation**, a
 **declarative state machine**, and **read-repair caching**.
 
-Personal practice project. The domain (identity verification during signup) and the vendor
-("VerifyPro") are both invented, and the vendor runs as a container in this repo so the whole thing is
-self-contained.
+Personal project inspired by KYC integration work, built with AI assistance. The domain and vendor
+here are simulated: "VerifyPro" is fictional and runs as a container in this repo, so the whole thing
+is self-contained.
 
 ---
 
