@@ -1,6 +1,6 @@
-# verification-flow-prototype
+# kyc-verification-service
 
-[![CI](https://github.com/ShazAhmed10/verification-flow-prototype/actions/workflows/ci.yml/badge.svg)](https://github.com/ShazAhmed10/verification-flow-prototype/actions/workflows/ci.yml)
+[![CI](https://github.com/ShazAhmed10/kyc-verification-service/actions/workflows/ci.yml/badge.svg)](https://github.com/ShazAhmed10/kyc-verification-service/actions/workflows/ci.yml)
 
 A small backend service demonstrating three patterns that show up whenever you integrate an
 asynchronous third-party vendor: **async vendor integration with webhook + worker reconciliation**, a
@@ -111,7 +111,7 @@ model is reachable. It works with no API key at all.
 ## Running it
 
 ```bash
-git clone <this repo> && cd verification-flow-prototype
+git clone <this repo> && cd kyc-verification-service
 
 # Optional - only the /explain narrative needs it. Everything else runs without.
 cp .env.example .env && $EDITOR .env     # or: export ANTHROPIC_API_KEY=...
